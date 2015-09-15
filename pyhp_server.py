@@ -6,9 +6,9 @@ from io import StringIO
 from socketserver import ThreadingMixIn
 
 PATH = "web"
-write_header = """out=''
+write_header = """__out=''
 def write(text):
-    global out
+    global __out
     __out += text
 
 """
@@ -27,7 +27,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     def handle_error(self, code, message):
         self.send_response(code)
-        self.wfile.write("""
+        self.wfile.write(bytes("""
             <html>
             <title>
                 %d : %s
@@ -36,7 +36,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             <h1>%d : %s</h1>
             </body>
             </html>
-            """ % (code, message, code, message))
+            """ % (code, message, code, message), "UTF-8"))
 
     def do_GET(self):
         global PATH, context
@@ -65,7 +65,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         #self.send_header("Content-type", "text/html")
         self.end_headers()
         context['args'] = args
-        self.wfile.write(parse_file(data, context))
+        self.wfile.write(bytes(parse_file(data, context),"UTF-8"))
 
 
 def run_while_true(port=8080, server_class=ThreadingHTTPServer,
