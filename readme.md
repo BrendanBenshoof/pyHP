@@ -21,3 +21,5 @@ Use the `write(String)` function to output inline into the HTML file.
 
 Aguments (post and get) are availible by the `args` dict.
 The global `out` is used to hold the output of a block.
+
+Any python files or packages you want to import can be stored in the "lib" directory
