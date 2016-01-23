@@ -1,8 +1,11 @@
 <html>
 <body>
 <b>
+  Your IP is:
 <?
-write("Hello world")
+global Page
+print(Page.write)
+Page.write(Page.client[0])
 ?>
 </b>
 </body>
