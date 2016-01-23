@@ -1,9 +1,11 @@
 import os
 import sys
+import io
 import http.server
 import urllib.parse as urlparse
 from io import StringIO
 from socketserver import ThreadingMixIn
+import traceback
 
 class Page_class:
     def __init__(self):
@@ -17,7 +19,7 @@ class Page_class:
 
 
 PATH = "web"
-write_header = "global Page\n"
+write_header = ""#"global Page\n"
 
 
 
@@ -109,7 +111,10 @@ def parse_file(text, context):
                     try:
                         exec(ret, context, {})
                     except Exception as E:
-                        return str(E)
+                        fp = io.StringIO()
+                        traceback.print_exc(file=fp)
+                        fp.seek(0)
+                        return fp.read()
                     text = text[:open_index - 2] + context['Page'].out + text[i + 2:]
                     return parse_file(text, context)
         i = i + 1
