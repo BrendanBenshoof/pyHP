@@ -1,18 +1,26 @@
 import os
 import sys
+import io
 import http.server
 import urllib.parse as urlparse
 from io import StringIO
 from socketserver import ThreadingMixIn
+import traceback
+
+class Page_class:
+    def __init__(self):
+        self.out=''
+        self.args = {}
+        self.client=None
+
+    def write(self,text):
+        self.out += text
+
+
 
 PATH = "web"
-write_header = """__out=''
-def write(text):
-    global __out
-    __out += text
+write_header = ""#"global Page\n"
 
-"""
-context = {'__out': ''}
 
 
 mypath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib")
@@ -39,11 +47,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
             """ % (code, message, code, message), "UTF-8"))
 
     def do_GET(self):
-        global PATH, context
+        global PATH
         self.do_POST()
 
     def do_POST(self):
-        global PATH, context
+        global PATH
+        context = {"Page":Page_class()}
         mypath = self.path.split('?', 1)
         if mypath[0] == "/":
             mypath[0] = "/index.pyhp"
@@ -64,7 +73,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
         self.send_response(200)
         #self.send_header("Content-type", "text/html")
         self.end_headers()
-        context['args'] = args
+        context['Page'].args = args
+        context['Page'].client = self.client_address
         self.wfile.write(bytes(parse_file(data, context),"UTF-8"))
 
 
@@ -97,12 +107,15 @@ def parse_file(text, context):
                 if text[i + 1] == ">":
                     # print text[open_index:i]
                     ret = compile(write_header + text[open_index:i], "<string>", "exec")
-                    context['out'] = ""
+                    context["Page"].out = ""
                     try:
                         exec(ret, context, {})
                     except Exception as E:
-                        return str(E)
-                    text = text[:open_index - 2] + context['__out'] + text[i + 2:]
+                        fp = io.StringIO()
+                        traceback.print_exc(file=fp)
+                        fp.seek(0)
+                        return fp.read()
+                    text = text[:open_index - 2] + context['Page'].out + text[i + 2:]
                     return parse_file(text, context)
         i = i + 1
     return text
